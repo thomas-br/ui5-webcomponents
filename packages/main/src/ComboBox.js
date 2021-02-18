@@ -23,7 +23,7 @@ import {
 	VALUE_STATE_WARNING,
 	VALUE_STATE_INFORMATION,
 	INPUT_SUGGESTIONS_TITLE,
-	ICON_ACCESSIBLE_NAME,
+	SELECT_OPTIONS,
 } from "./generated/i18n/i18n-defaults.js";
 
 // Templates
@@ -468,6 +468,11 @@ class ComboBox extends UI5Element {
 
 	_afterOpenPopover() {
 		this._iconPressed = true;
+
+		if (isPhone() && this.value) {
+			this.filterValue = this.value
+		}
+
 		this._clearFocus();
 	}
 
@@ -631,7 +636,13 @@ class ComboBox extends UI5Element {
 		}
 	}
 
-	_closeRespPopover() {
+	_closeRespPopover(event) {
+		if (isPhone() && event && event.target.classList.contains("ui5-responsive-popover-close-btn") && this._selectedItemText) {
+			this.value = this._selectedItemText;
+			this.filterValue = this._selectedItemText;
+			this._tempValue = this._selectedItemText;
+		}
+
 		this.responsivePopover.close();
 	}
 
@@ -654,7 +665,7 @@ class ComboBox extends UI5Element {
 			this._tempValue = current;
 		}
 
-		if (matchingItems.length && (selectionValue !== this._tempValue)) {
+		if (matchingItems.length && (selectionValue !== this._tempValue && this.value !== this._tempValue)) {
 			setTimeout(() => {
 				this.inner.setSelectionRange(selectionValue.length, this._tempValue.length);
 			}, 0);
@@ -693,6 +704,7 @@ class ComboBox extends UI5Element {
 		const listItem = event.detail.item;
 
 		this._tempValue = listItem.mappedItem.text;
+		this._selectedItemText = listItem.mappedItem.text;
 		this.filterValue = this._tempValue;
 
 		if (!listItem.mappedItem.selected) {
@@ -722,7 +734,7 @@ class ComboBox extends UI5Element {
 	}
 
 	get _iconAccessibleNameText() {
-		return this.i18nBundle.getText(ICON_ACCESSIBLE_NAME);
+		return this.i18nBundle.getText(SELECT_OPTIONS);
 	}
 
 	get inner() {
@@ -814,7 +826,7 @@ class ComboBox extends UI5Element {
 			suggestionPopoverHeader: {
 				"display": this._listWidth === 0 ? "none" : "inline-block",
 				"width": `${this._listWidth}px`,
-				"padding": "0.5625rem 1rem",
+				"padding": "0.9125rem 1rem",
 			},
 		};
 	}

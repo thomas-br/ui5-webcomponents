@@ -31,11 +31,8 @@ import {
 	VALUE_STATE_SUCCESS,
 	VALUE_STATE_ERROR,
 	VALUE_STATE_WARNING,
-	TOKENIZER_ARIA_CONTAIN_TOKEN,
-	TOKENIZER_ARIA_CONTAIN_ONE_TOKEN,
-	TOKENIZER_ARIA_CONTAIN_SEVERAL_TOKENS,
 	INPUT_SUGGESTIONS_TITLE,
-	ICON_ACCESSIBLE_NAME,
+	SELECT_OPTIONS,
 	MULTICOMBOBOX_DIALOG_OK_BUTTON,
 } from "./generated/i18n/i18n-defaults.js";
 
@@ -84,9 +81,9 @@ const metadata = {
 		* @public
 		* @since 1.0.0-rc.9
 		*/
-	   icon: {
-		   type: HTMLElement,
-	   },
+		icon: {
+			type: HTMLElement,
+		},
 
 		/**
 		 * Defines the value state message that will be displayed as pop up under the <code>ui5-multi-combobox</code>.
@@ -401,6 +398,7 @@ class MultiComboBox extends UI5Element {
 		super();
 
 		this._filteredItems = [];
+		this.selectedValues = [];
 		this._inputLastValue = "";
 		this._deleting = false;
 		this._validationTimeout = null;
@@ -468,7 +466,7 @@ class MultiComboBox extends UI5Element {
 			- value of the host and the internal input should be differnt in case of actual input
 			- input is called when a key is pressed => keyup should not be called yet
 		*/
-		const skipFiring = (this._inputDom.value === this.value) && isIE && !this._keyDown && !!this.placeholder;
+		const skipFiring = (this._inputDom.value === this.value) && isIE() && !this._keyDown && !!this.placeholder;
 
 		if (skipFiring) {
 			event.preventDefault();
@@ -519,30 +517,26 @@ class MultiComboBox extends UI5Element {
 		this.fireSelectionChange();
 	}
 
+	get _getPlaceholder() {
+		if (this._tokenizer && this._tokenizer.tokens.length) {
+			return "";
+		}
+
+		return this.placeholder;
+	}
+
 	_handleLeft() {
 		const cursorPosition = this.getDomRef().querySelector(`input`).selectionStart;
 
 		if (cursorPosition === 0) {
-			this._focusLastToken();
+			this._tokenizer._focusLastToken();
 		}
-	}
-
-	_focusLastToken() {
-		const lastTokenIndex = this._tokenizer.tokens.length - 1;
-
-		if (lastTokenIndex < 0) {
-			return;
-		}
-
-		this._tokenizer.tokens[lastTokenIndex].focus();
-		this._tokenizer._itemNav.currentIndex = lastTokenIndex;
 	}
 
 	_tokenizerFocusOut(event) {
 		this._tokenizerFocused = false;
 
-		const tokenizer = this.shadowRoot.querySelector("[ui5-tokenizer]");
-		const tokensCount = tokenizer.tokens.length - 1;
+		const tokensCount = this._tokenizer.tokens.length - 1;
 
 		if (!event.relatedTarget || event.relatedTarget.localName !== "ui5-token") {
 			this._tokenizer.tokens.forEach(token => { token.selected = false; });
@@ -582,14 +576,15 @@ class MultiComboBox extends UI5Element {
 		if (isDown(event) && this.allItemsPopover.opened && this.items.length) {
 			event.preventDefault();
 			await this._getList();
-			this.list._itemNavigation.current = 0;
-			this.list.items[0].focus();
+			const firstListItem = this.list.items[0];
+			this.list._itemNavigation.setCurrentItem(firstListItem);
+			firstListItem.focus();
 		}
 
 		if (isBackSpace(event) && event.target.value === "") {
 			event.preventDefault();
 
-			this._focusLastToken();
+			this._tokenizer._focusLastToken();
 		}
 
 		this._keyDown = true;
@@ -692,6 +687,11 @@ class MultiComboBox extends UI5Element {
 
 		const filteredItems = this._filterItems(this.value);
 		this._filteredItems = filteredItems;
+
+		if (isPhone() && this.allItemsPopover && this.allItemsPopover.opened) {
+			// Set initial focus to the dialog
+			this.allItemsPopover.focus();
+		}
 	}
 
 	async onAfterRendering() {
@@ -747,20 +747,6 @@ class MultiComboBox extends UI5Element {
 		return this.shadowRoot.querySelector("[ui5-tokenizer]");
 	}
 
-	get nMoreCountText() {
-		const iTokenCount = this._getSelectedItems().length;
-
-		if (iTokenCount === 0) {
-			return this.i18nBundle.getText(TOKENIZER_ARIA_CONTAIN_TOKEN);
-		}
-
-		if (iTokenCount === 1) {
-			return this.i18nBundle.getText(TOKENIZER_ARIA_CONTAIN_ONE_TOKEN);
-		}
-
-		return this.i18nBundle.getText(TOKENIZER_ARIA_CONTAIN_SEVERAL_TOKENS, iTokenCount);
-	}
-
 	inputFocusIn() {
 		if (!isPhone()) {
 			this.focused = true;
@@ -809,6 +795,21 @@ class MultiComboBox extends UI5Element {
 		return this.getSlottedNodes("valueStateMessage").map(el => el.cloneNode(true));
 	}
 
+	get _tokensCountText() {
+		if (!this._tokenizer) {
+			return;
+		}
+		return this._tokenizer._tokensCountText();
+	}
+
+	get _tokensCountTextId() {
+		return `${this._id}-hiddenText-nMore`;
+	}
+
+	get ariaDescribedByText() {
+		return this.valueStateTextId ? `${this._tokensCountTextId} ${this.valueStateTextId}` : `${this._tokensCountTextId}`;
+	}
+
 	get shouldDisplayDefaultValueStateMessage() {
 		return !this.valueStateMessage.length && this.hasValueStateMessage;
 	}
@@ -840,7 +841,7 @@ class MultiComboBox extends UI5Element {
 	}
 
 	get _iconAccessibleNameText() {
-		return this.i18nBundle.getText(ICON_ACCESSIBLE_NAME);
+		return this.i18nBundle.getText(SELECT_OPTIONS);
 	}
 
 	get _dialogOkButton() {
@@ -867,12 +868,11 @@ class MultiComboBox extends UI5Element {
 		return {
 			popoverValueStateMessage: {
 				"width": `${this._listWidth}px`,
-				"min-height": "2.5rem",
-				"padding": "0.5625rem 1rem",
 				"display": this._listWidth === 0 ? "none" : "inline-block",
+				"padding": "0.9125rem 1rem",
 			},
 			popoverHeader: {
-				"width": `${this._inputWidth}px`,
+				"max-width": `${this._inputWidth}px`,
 			},
 		};
 	}

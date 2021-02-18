@@ -309,8 +309,14 @@ class Select extends UI5Element {
 	onAfterRendering() {
 		this.toggleValueStatePopover(this.shouldOpenValueStateMessagePopover);
 
-		if (this._isPickerOpen && !this._listWidth) {
-			this._listWidth = this.responsivePopover.offsetWidth;
+		if (this._isPickerOpen) {
+			if (!this._listWidth) {
+				this._listWidth = this.responsivePopover.offsetWidth;
+			}
+			if (this.responsivePopover.querySelector("ui5-li[focused]:not([selected]")) {
+				// selection changed programmatically => apply focus to the newly selected item
+				this._applyFocusAfterOpen();
+			}
 		}
 	}
 
@@ -320,6 +326,7 @@ class Select extends UI5Element {
 
 	_onfocusout() {
 		this.focused = false;
+		this.itemSelectionAnnounce();
 	}
 
 	get _isPickerOpen() {
@@ -327,7 +334,6 @@ class Select extends UI5Element {
 	}
 
 	async _respPopover() {
-		this._iconPressed = true;
 		const staticAreaItem = await this.getStaticAreaItemDomRef();
 		return staticAreaItem.querySelector("[ui5-responsive-popover]");
 	}
@@ -343,6 +349,7 @@ class Select extends UI5Element {
 	}
 
 	async _toggleRespPopover() {
+		this._iconPressed = true;
 		this.responsivePopover = await this._respPopover();
 		if (this.disabled) {
 			return;
@@ -356,16 +363,21 @@ class Select extends UI5Element {
 	}
 
 	_syncSelection() {
-		let lastSelectedOptionIndex = -1;
+		let lastSelectedOptionIndex = -1,
+			firstEnabledOptionIndex = -1;
 		const opts = this.options.map((opt, index) => {
 			if (opt.selected) {
 				lastSelectedOptionIndex = index;
+			}
+			if (!opt.disabled && (firstEnabledOptionIndex === -1)) {
+				firstEnabledOptionIndex = index;
 			}
 
 			opt.selected = false;
 
 			return {
 				selected: false,
+				disabled: opt.disabled,
 				icon: opt.icon,
 				value: opt.value,
 				textContent: opt.textContent,
@@ -374,7 +386,7 @@ class Select extends UI5Element {
 			};
 		});
 
-		if (lastSelectedOptionIndex > -1) {
+		if (lastSelectedOptionIndex > -1 && !opts[lastSelectedOptionIndex].disabled) {
 			opts[lastSelectedOptionIndex].selected = true;
 			this.options[lastSelectedOptionIndex].selected = true;
 			this._text = opts[lastSelectedOptionIndex].textContent;
@@ -382,13 +394,12 @@ class Select extends UI5Element {
 		} else {
 			this._text = "";
 			this._selectedIndex = -1;
-		}
-
-		if (lastSelectedOptionIndex === -1 && opts[0]) {
-			opts[0].selected = true;
-			this.options[0].selected = true;
-			this._selectedIndex = 0;
-			this._text = this.options[0].textContent;
+			if (opts[firstEnabledOptionIndex]) {
+				opts[firstEnabledOptionIndex].selected = true;
+				this.options[firstEnabledOptionIndex].selected = true;
+				this._selectedIndex = firstEnabledOptionIndex;
+				this._text = this.options[firstEnabledOptionIndex].textContent;
+			}
 		}
 
 		this._syncedOptions = opts;
@@ -455,6 +466,11 @@ class Select extends UI5Element {
 		this._toggleRespPopover();
 	}
 
+	_onclick(event) {
+		this.getFocusDomRef().focus();
+		this._toggleRespPopover();
+	}
+
 	/**
 	 * The user used arrow up/down on the list
 	 * @private
@@ -471,9 +487,11 @@ class Select extends UI5Element {
 		}
 
 		const li = this.responsivePopover.querySelector(`#${this._currentlySelectedOption._id}-li`);
+		if (!li) {
+			return;
+		}
 
-		li.parentElement._itemNavigation.currentIndex = this._selectedIndex;
-		li && li.focus();
+		this.responsivePopover.querySelector("[ui5-list]").focusItem(li);
 	}
 
 	_handlePickerKeydown(event) {
@@ -488,6 +506,7 @@ class Select extends UI5Element {
 
 	_handleArrowNavigation(event, shouldFireEvent) {
 		let nextIndex = -1;
+		const currentIndex = this._selectedIndex;
 		const isDownKey = isDown(event);
 		const isUpKey = isUp(event);
 
@@ -502,6 +521,10 @@ class Select extends UI5Element {
 			this.options[this._selectedIndex].selected = false;
 			this.options[nextIndex].selected = true;
 			this._selectedIndex = nextIndex === -1 ? this._selectedIndex : nextIndex;
+
+			if (currentIndex !== this._selectedIndex) {
+				this.itemSelectionAnnounce();
+			}
 
 			if (shouldFireEvent) {
 				this._fireChangeEvent(this.options[nextIndex]);
@@ -635,6 +658,16 @@ class Select extends UI5Element {
 
 	get _isPhone() {
 		return isPhone();
+	}
+
+	itemSelectionAnnounce() {
+		const invisibleText = this.shadowRoot.querySelector(`#${this._id}-selectionText`);
+
+		if (this.focused && !this._isPickerOpen && this._currentlySelectedOption) {
+			invisibleText.textContent = this._currentlySelectedOption.textContent;
+		} else {
+			invisibleText.textContent = "";
+		}
 	}
 
 	async openValueStatePopover() {

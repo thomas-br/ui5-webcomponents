@@ -203,15 +203,8 @@ class Dialog extends Popup {
 		return "flex";
 	}
 
-	get classes() {
-		return {
-			root: {
-				"ui5-popup-root": true,
-			},
-			content: {
-				"ui5-popup-content": true,
-			},
-		};
+	get _displayHeader() {
+		return this.header.length || this.headerText;
 	}
 
 	show() {
@@ -230,11 +223,15 @@ class Dialog extends Popup {
 	}
 
 	onEnterDOM() {
+		super.onEnterDOM();
+
 		ResizeHandler.register(this, this._screenResizeHandler);
 		ResizeHandler.register(document.body, this._screenResizeHandler);
 	}
 
 	onExitDOM() {
+		super.onExitDOM();
+
 		ResizeHandler.deregister(this, this._screenResizeHandler);
 		ResizeHandler.deregister(document.body, this._screenResizeHandler);
 	}

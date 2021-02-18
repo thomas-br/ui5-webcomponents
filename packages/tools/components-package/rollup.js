@@ -5,6 +5,7 @@ const { babel } = require("@rollup/plugin-babel");
 const { nodeResolve } = require("@rollup/plugin-node-resolve");
 const url = require("@rollup/plugin-url");
 const { terser } = require("rollup-plugin-terser");
+const json = require("@rollup/plugin-json");
 const notify = require('rollup-plugin-notify');
 const filesize = require('rollup-plugin-filesize');
 const livereload = require('rollup-plugin-livereload');
@@ -30,24 +31,32 @@ const getPlugins = ({ transpile }) => {
 
 	if (!process.env.DEV) {
 		plugins.push(filesize({
-			render : function (options, bundle, { minSize, gzipSize, brotliSize, bundleSize }){
-				return gzipSize;
+			render : function (options, bundle, { minSize, gzipSize, brotliSize, bundleSize, fileName }){
+				return fileName.padEnd(35) + " " + minSize + " / gzipped: " + gzipSize
 			}
 		}));
 	}
 
 	plugins.push(ui5DevImportCheckerPlugin());
 
-	plugins.push(url({
-		limit: 0,
+	// comment out json plugin when testing static imports
+	plugins.push(json({
 		include: [
-			/.*assets\/.*\.json/
+			/.*assets\/.*\.json/,
 		],
-		emitFiles: true,
-		fileName: "[name].[hash][extname]",
-		publicPath,
+		namedExports: false,
 	}));
 
+	// uncomment when testing static resources
+	// plugins.push(url({
+	// 	limit: 0,
+	// 	include: [
+	// 		/.*assets\/.*\.json/,
+	// 	],
+	// 	emitFiles: true,
+	// 	fileName: "[name].[hash][extname]",
+	// 	publicPath,
+	// }));
 
 	if (transpile) {
 		plugins.push(babel({
@@ -92,7 +101,7 @@ const getES6Config = (input = "bundle.esm.js") => {
 			sourcemap: true
 		},
 		moduleContext: (id) => {
-			if (id.includes("url-search-params-polyfill")) {
+			if (typeof id === "string" && id.includes("url-search-params-polyfill")) {
 				// suppress the rollup error for this module as it uses this in the global scope correctly even without changing the context here
 				return "window";
 			}
@@ -130,7 +139,7 @@ const getES5Config = (input = "bundle.es5.js") => {
 
 let config = getES6Config();
 
-if (process.env.ES5_BUILD) {
+if (process.env.ES5_BUILD && fs.existsSync("bundle.es5.js")) {
 	config = config.concat(getES5Config());
 }
 
