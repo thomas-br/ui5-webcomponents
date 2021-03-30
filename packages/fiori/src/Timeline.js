@@ -20,8 +20,8 @@ const metadata = {
 		/**
 		 * Determines the content of the <code>ui5-timeline</code>.
 		 *
-		 * @type {HTMLElement[]}
-		 * @slot
+		 * @type {sap.ui.webcomponents.fiori.ITimelineItem[]}
+		 * @slot items
 		 * @public
 		 */
 		"default": {

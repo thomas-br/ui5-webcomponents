@@ -63,8 +63,8 @@ const metadata = {
 		 * &lt;/ui5-multi-combobox>
 		 * <br> <br>
 		 *
-		 * @type {HTMLElement[]}
-		 * @slot
+		 * @type {sap.ui.webcomponents.main.IMultiComboBoxItem[]}
+		 * @slot items
 		 * @public
 		 */
 		"default": {
@@ -76,7 +76,7 @@ const metadata = {
 		/**
 		* Defines the icon to be displayed in the <code>ui5-multi-combobox</code>.
 		*
-		* @type {HTMLElement[]}
+		* @type {sap.ui.webcomponents.main.IIcon}
 		* @slot
 		* @public
 		* @since 1.0.0-rc.9
@@ -228,7 +228,6 @@ const metadata = {
 		_filteredItems: {
 			type: Object,
 		},
-
 
 		filterSelected: {
 			type: Boolean,
@@ -428,11 +427,11 @@ class MultiComboBox extends UI5Element {
 	}
 
 	togglePopover() {
-		this._toggleRespPopover();
-
 		if (!isPhone()) {
 			this._inputDom.focus();
 		}
+
+		this._toggleRespPopover();
 	}
 
 	filterSelectedItems(event) {
@@ -490,7 +489,6 @@ class MultiComboBox extends UI5Element {
 
 			return;
 		}
-
 
 		this._inputLastValue = input.value;
 		this.value = input.value;

@@ -30,8 +30,8 @@ const metadata = {
 		 * <b>Note:</b> Multiple buttons are allowed.
 		 * <br><br>
 		 * <b>Note:</b> Use the <code>ui5-togglebutton</code> for the intended design.
-		 * @type {HTMLElement[]}
-		 * @slot
+		 * @type {sap.ui.webcomponents.main.IButton[]}
+		 * @slot buttons
 		 * @public
 		 */
 		"default": {

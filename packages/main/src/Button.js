@@ -5,6 +5,7 @@ import { getFeature } from "@ui5/webcomponents-base/dist/FeaturesRegistry.js";
 import { fetchI18nBundle, getI18nBundle } from "@ui5/webcomponents-base/dist/i18nBundle.js";
 import { getEffectiveAriaLabelText } from "@ui5/webcomponents-base/dist/util/AriaLabelHelper.js";
 import isLegacyBrowser from "@ui5/webcomponents-base/dist/isLegacyBrowser.js";
+import { isPhone, isTablet } from "@ui5/webcomponents-base/dist/Device.js";
 import ButtonDesign from "./types/ButtonDesign.js";
 import ButtonTemplate from "./generated/templates/ButtonTemplate.lit.js";
 import Icon from "./Icon.js";
@@ -195,7 +196,7 @@ const metadata = {
 		 * Indicates if the element if focusable
 		 * @private
 		 */
-		nonFocusable: {
+		nonInteractive: {
 			type: Boolean,
 		},
 
@@ -216,13 +217,21 @@ const metadata = {
 			defaultValue: "0",
 			noAttribute: true,
 		},
+
+		/**
+		 * @since 1.0.0-rc.13
+		 * @private
+		 */
+		_isTouch: {
+			type: Boolean,
+		},
 	},
 	managedSlots: true,
 	slots: /** @lends sap.ui.webcomponents.main.Button.prototype */ {
 		/**
 		 * Defines the text of the <code>ui5-button</code>.
 		 * <br><br>
-		 * <b>Note:</b> Аlthough this slot accepts HTML Elements, it is strongly recommended that you only use text in order to preserve the intended design.
+		 * <b>Note:</b> Although this slot accepts HTML Elements, it is strongly recommended that you only use text in order to preserve the intended design.
 		 *
 		 * @type {Node[]}
 		 * @slot
@@ -243,6 +252,7 @@ const metadata = {
 		 *
 		 * @event
 		 * @public
+		 * @native
 		 */
 		click: {},
 	},
@@ -280,6 +290,7 @@ const metadata = {
  * @alias sap.ui.webcomponents.main.Button
  * @extends UI5Element
  * @tagname ui5-button
+ * @implements sap.ui.webcomponents.main.IButton
  * @public
  */
 class Button extends UI5Element {
@@ -305,6 +316,7 @@ class Button extends UI5Element {
 
 	constructor() {
 		super();
+		this._isTouch = isPhone() || isTablet();
 
 		this._deactivate = () => {
 			if (activeButton) {
@@ -332,6 +344,9 @@ class Button extends UI5Element {
 	}
 
 	_onclick(event) {
+		if (this.nonInteractive) {
+			return;
+		}
 		event.isMarked = "button";
 		const FormSupport = getFeature("FormSupport");
 		if (FormSupport) {
@@ -340,9 +355,30 @@ class Button extends UI5Element {
 	}
 
 	_onmousedown(event) {
+		if (this.nonInteractive || this._isTouch) {
+			return;
+		}
+
 		event.isMarked = "button";
 		this.active = true;
 		activeButton = this; // eslint-disable-line
+	}
+
+	_ontouchstart(event) {
+		event.isMarked = "button";
+		if (this.nonInteractive) {
+			return;
+		}
+
+		this.active = true;
+	}
+
+	_ontouchend(event) {
+		this.active = false;
+
+		if (activeButton) {
+			activeButton.active = false;
+		}
 	}
 
 	_onmouseup(event) {
@@ -364,11 +400,18 @@ class Button extends UI5Element {
 	}
 
 	_onfocusout(_event) {
+		if (this.nonInteractive) {
+			return;
+		}
 		this.active = false;
 		this.focused = false;
 	}
 
 	_onfocusin(event) {
+		if (this.nonInteractive) {
+			return;
+		}
+
 		event.isMarked = "button";
 		this.focused = true;
 	}
@@ -378,7 +421,10 @@ class Button extends UI5Element {
 	}
 
 	get isIconOnly() {
-		return !Array.from(this.childNodes).filter(node => node.nodeType !== Node.COMMENT_NODE).length;
+		return !Array.from(this.childNodes).filter(node => {
+			return node.nodeType !== Node.COMMENT_NODE
+			&& (node.nodeType !== Node.TEXT_NODE || node.nodeValue.trim().length !== 0);
+		}).length;
 	}
 
 	get accInfo() {
@@ -413,7 +459,7 @@ class Button extends UI5Element {
 			return tabindex;
 		}
 
-		return this.nonFocusable ? "-1" : this._tabIndex;
+		return this.nonInteractive ? "-1" : this._tabIndex;
 	}
 
 	get showIconTooltip() {

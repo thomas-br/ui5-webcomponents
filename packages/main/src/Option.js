@@ -60,13 +60,34 @@ const metadata = {
 		/**
 		 * Defines the stable selector that you can use via getStableDomRef method.
 		 * @public
+		 * @type {string}
 		 * @since 1.0.0-rc.11
 		 */
 		stableDomRef: {
 			type: String,
 		},
+
+		/**
+		 * Defines the focused state of the <code>ui5-option</code>.
+		 * @type {boolean}
+		 * @defaultvalue false
+		 * @since 1.0.0-rc.13
+		 * @private
+		 */
+		_focused: {
+			type: Boolean,
+		},
 	},
-	slots: {
+	slots: /** @lends sap.ui.webcomponents.main.Option.prototype */ {
+		/**
+		 * Defines the text of the <code>ui5-option</code>.
+		 * <br><br>
+		 * <b>Note:</b> Although this slot accepts HTML Elements, it is strongly recommended that you only use text in order to preserve the intended design.
+		 *
+		 * @type {Node[]}
+		 * @slot
+		 * @public
+		 */
 		"default": {
 			type: Node,
 		},
@@ -86,6 +107,7 @@ const metadata = {
  * @alias sap.ui.webcomponents.main.Option
  * @extends sap.ui.webcomponents.base.UI5Element
  * @tagname ui5-option
+ * @implements sap.ui.webcomponents.main.ISelectOption
  * @public
  */
 class Option extends UI5Element {
