@@ -83,7 +83,7 @@ HTMLLitVisitor.prototype.MustacheStatement = function(mustache) {
 		} else if (hasCalculatingClasses) {
 			parsedCode = `\${classMap(${path})}`;
 		} else if (hasStylesCalculation) {
-			parsedCode = `\${styleMap(${path})}`;
+			parsedCode = `\${imperativeStyles(${path})}`;
 		} else if (skipIfDefined){
 			parsedCode = `\${${path}}`;
 		} else {
