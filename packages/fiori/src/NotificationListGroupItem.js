@@ -96,7 +96,7 @@ const metadata = {
  * <ul>
  * <li><code>Toggle</code> button to expand and collapse the group</li>
  * <li><code>Priority</code> icon to display the priority of the group</li>
- * <li><code>Heading</code> to entitle the group</li>
+ * <li><code>TitleText</code> to entitle the group</li>
  * <li>Custom actions - with the use of <code>ui5-notification-action</code></li>
  * <li>Items of the group</li>
  * </ul>
@@ -104,11 +104,20 @@ const metadata = {
  * <h3>Usage</h3>
  * The component can be used in a standard <code>ui5-list</code>.
  *
+ * <h3>CSS Shadow Parts</h3>
+ *
+ * <ui5-link target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/CSS/::part">CSS Shadow Parts</ui5-link> allow developers to style elements inside the Shadow DOM.
+ * <br>
+ * The <code>ui5-li-notification-group</code> exposes the following CSS Shadow Parts:
+ * <ul>
+ * <li>title-text - Used to style the titleText of the notification list group item</li>
+ * </ul>
+ *
  * <h3>ES6 Module Import</h3>
  *
- * <code>import @ui5/webcomponents/dist/NotificationListGroupItem.js";</code>
+ * <code>import "@ui5/webcomponents/dist/NotificationListGroupItem.js";</code>
  * <br>
- * <code>import @ui5/webcomponents/dist/NotificationAction.js";</code> (optional)
+ * <code>import "@ui5/webcomponents/dist/NotificationAction.js";</code> (optional)
  * @constructor
  * @author SAP SE
  * @alias sap.ui.webcomponents.fiori.NotificationListGroupItem
@@ -223,8 +232,8 @@ class NotificationListGroupItem extends NotificationListItemBase {
 		const id = this._id;
 		const ids = [];
 
-		if (this.hasHeading) {
-			ids.push(`${id}-heading`);
+		if (this.hasTitleText) {
+			ids.push(`${id}-title-text`);
 		}
 
 		ids.push(`${id}-invisibleText`);

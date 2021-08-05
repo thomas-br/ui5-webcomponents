@@ -20,6 +20,9 @@ const registerIconLoader = async (collectionName, loader) => {
 
 const _loadIconCollectionOnce = async collectionName => {
 	if (!iconCollectionPromises.has(collectionName)) {
+		if (!loaders.has(collectionName)) {
+			throw new Error(`No loader registered for the ${collectionName} icons collection. Probably you forgot to import the "AllIcons.js" module for the respective package.`);
+		}
 		const loadIcons = loaders.get(collectionName);
 		iconCollectionPromises.set(collectionName, loadIcons(collectionName));
 	}
@@ -70,6 +73,12 @@ const _parseName = name => {
 	if (collection === "SAP-icons-TNT") {
 		collection = "tnt";
 	}
+	// hardcoded alias in case icon explorer is used, resolve `BusinessSuiteInAppSymbols` to `business-suite`
+	// aliases can be made a feature in the future if more collections need it or more aliases are needed.
+	if (collection === "BusinessSuiteInAppSymbols") {
+		collection = "business-suite";
+		name = name.replace("icon-", "");
+	}
 	const registryKey = `${collection}/${name}`;
 	return { name, collection, registryKey };
 };
@@ -105,6 +114,7 @@ const _getRegisteredNames = async () => {
 	// fetch one icon of each collection to trigger the bundle load
 	await getIconData("edit");
 	await getIconData("tnt/arrow");
+	await getIconData("business-suite/3d");
 	return Array.from(registry.keys());
 };
 

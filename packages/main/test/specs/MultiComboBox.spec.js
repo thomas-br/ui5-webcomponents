@@ -255,7 +255,7 @@ describe("MultiComboBox general interaction", () => {
 			const listItem = popover.$("ui5-list").$$("ui5-li")[0];
 
 			icon.click();
-			assert.strictEqual(listItem.shadow$(".ui5-li-info").getText(), "DZ", "Additional item text should be displayed");
+			assert.strictEqual(listItem.shadow$(".ui5-li-additional-text").getText(), "DZ", "Additional item text should be displayed");
 			icon.click();
 		});
 
@@ -286,28 +286,27 @@ describe("MultiComboBox general interaction", () => {
 			assert.strictEqual(innerInput.getAttribute("aria-describedby"), ariaDescribedBy, "aria-describedby has a reference for the value state and the tokens count");
 		});
 
-		/*
 		it ("aria-describedby value according to the tokens count", () => {
 			const mcb = $("#mcb-compact");
 
 			mcb.scrollIntoView();
-			browser.pause(500);
 
 			const innerInput = mcb.shadow$("input");
-			const invisibleText = mcb.shadow$(".ui5-hidden-text");
+			let invisibleText = mcb.shadow$(".ui5-hidden-text");
 			const inivisbleTextId = invisibleText.getProperty("id");
 			let tokens = mcb.shadow$$(".ui5-multi-combobox-token");
 			let resourceBundleText = null;
 
 			assert.strictEqual(tokens.length, 2, "should have two tokens");
 			assert.strictEqual(innerInput.getAttribute("aria-describedby"), inivisbleTextId, "aria-describedby reference is correct");
-			assert.strictEqual(invisibleText.getText(), "Contains 2 tokens", "aria-describedby text is correct");
+			// assert.strictEqual(invisibleText.getText(), "Contains 2 tokens", "aria-describedby text is correct");
 
 			innerInput.click();
 			innerInput.keys("Backspace");
 			innerInput.keys("Backspace");
 
 			tokens = mcb.shadow$$(".ui5-multi-combobox-token");
+			invisibleText = mcb.shadow$(".ui5-hidden-text");
 
 			resourceBundleText = browser.execute(() => {
 				const mcb = document.getElementById("mcb-compact");
@@ -315,19 +314,20 @@ describe("MultiComboBox general interaction", () => {
 			});
 
 			assert.strictEqual(tokens.length, 1, "should have one token");
-			assert.strictEqual(invisibleText.getText(), resourceBundleText, "aria-describedby text is correct");
+			// assert.strictEqual(invisibleText.getText(), resourceBundleText, "aria-describedby text is correct");
 
 			innerInput.keys("Backspace");
 
 			tokens = mcb.shadow$$(".ui5-multi-combobox-token");
+			invisibleText = mcb.shadow$(".ui5-hidden-text");
+
 			resourceBundleText = browser.execute(() => {
 				const mcb = document.getElementById("mcb-compact");
 				return mcb.i18nBundle.getText(window["sap-ui-webcomponents-bundle"].defaultTexts.TOKENIZER_ARIA_CONTAIN_TOKEN);
 			});
 
 			assert.strictEqual(tokens.length, 0, "should not have tokens");
-			assert.strictEqual(invisibleText.getText(), resourceBundleText, "aria-describedby text is correct");
+			// assert.strictEqual(invisibleText.getText(), resourceBundleText, "aria-describedby text is correct");
 		});
-		 */
 	});
 });

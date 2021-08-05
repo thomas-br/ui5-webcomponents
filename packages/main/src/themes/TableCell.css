@@ -1,29 +1,28 @@
 :host {
-	display: contents;
+	display: table-cell;
 	font-family: "72override", var(--sapFontFamily);
 	font-size: 0.875rem;
 	height: 100%;
 	box-sizing: border-box;
 	overflow: hidden;
 	color: var(--sapContent_LabelColor);
+	word-break: break-word;
+	vertical-align: middle;
 }
 
 td {
-	padding: .5rem .25rem;
-	box-sizing: border-box;
-	word-break: break-word;
+	display: contents;
 }
 
-:host([first-in-row]) td,
 .ui5-table-popin-row td {
 	padding-left: 1rem;
 
 }
 
-:host([first-in-row]) td {
-	padding-left: 1rem;
-}
-
 :host([popined]) td {
 	padding-left: 0;
+}
+
+::slotted([ui5-label]) {
+	color: inherit;
 }

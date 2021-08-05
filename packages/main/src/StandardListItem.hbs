@@ -7,8 +7,8 @@
 			<div class="ui5-li-description-info-wrapper">
 				<span part="description" class="ui5-li-desc">{{description}}</span>
 
-				{{#if info}}
-					<span part="info" class="ui5-li-info">{{info}}</span>
+				{{#if additionalText}}
+					<span part="additional-text" class="ui5-li-additional-text">{{additionalText}}</span>
 				{{/if}}
 			</div>
 		{{/if}}
@@ -17,15 +17,17 @@
 		{{/unless}}
 	</div>
 	{{#unless description}}
-		{{#if info}}
-			<span part="info" class="ui5-li-info">{{info}}</span>
+		{{#if additionalText}}
+			<span part="additional-text" class="ui5-li-additional-text">{{additionalText}}</span>
 		{{/if}}
 	{{/unless}}
 {{/inline}}
 
 {{#*inline "imageBegin"}}
 	{{#if displayImage}}
-		<ui5-avatar image="{{image}}" image-fit-type="Contain" shape="Square" class="ui5-li-img"></ui5-avatar>
+		<ui5-avatar shape="Square" class="ui5-li-img">
+			<img src="{{image}}" class="ui5-li-img-inner" />
+		</ui5-avatar>
 	{{/if}}
 {{/inline}}
 

@@ -9,7 +9,7 @@ describe("Slider basic interactions", () => {
 		const slider = browser.$("#basic-slider");
 		const sliderHandle = slider.shadow$(".ui5-slider-handle");
 
-		assert.strictEqual(sliderHandle.getAttribute("style"), "left: 0%;", "Initially if no value is set, the Slider handle is at the beginning of the Slider");
+		assert.strictEqual(sliderHandle.getCSSProperty("left").value, "0px", "Initially if no value is set, the Slider handle is at the beginning of the Slider");
 
 		browser.setWindowSize(1257, 2000);
 		slider.setProperty("value", 3);
@@ -141,11 +141,64 @@ describe("Slider elements - tooltip, step, tickmarks, labels", () => {
 		slider.moveTo();
 
 		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "visible", "Slider tooltip visibility property should be 'visible'");
-		assert.strictEqual(sliderTooltip.getAttribute("style"), "visibility: visible;", "Slider tooltip should be shown");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "visible", "Slider tooltip should be shown");
 
 		sliderHandle.dragAndDrop({ x: 100, y: 1 });
 
 		assert.strictEqual(sliderTooltipValue.getText(), "2", "Slider tooltip should display value of 2");
+	});
+
+	it("Slider Tooltip should become visible when slider is focused", () => {
+		const slider = browser.$("#basic-slider-with-tooltip");
+		const sliderTooltip = slider.shadow$(".ui5-slider-tooltip");
+		const basicSlider = browser.$("#basic-slider");
+
+		basicSlider.click();
+
+		// initial state
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "hidden", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "hidden", "Slider tooltip should be shown");
+
+		slider.click();
+
+		// slider is focused
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "visible", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "visible", "Slider tooltip should be shown");
+	});
+
+	it("Slider Tooltip should stay visible when slider is focused and mouse moves away", () => {
+		const slider = browser.$("#basic-slider-with-tooltip");
+		const sliderTooltip = slider.shadow$(".ui5-slider-tooltip");
+
+		slider.click();
+
+		// slider is focused
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "visible", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "visible", "Slider tooltip should be shown");
+
+		// move mouse away - fires mouseout
+		slider.moveTo(0, -100);
+
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "visible", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "visible", "Slider tooltip should be shown");
+	});
+
+	it("Slider Tooltip should become hidden when slider is looses focus", () => {
+		const slider = browser.$("#basic-slider-with-tooltip");
+		const anotherSlider = browser.$("#basic-slider");
+		const sliderTooltip = slider.shadow$(".ui5-slider-tooltip");
+
+		slider.click();
+
+		// slider is focused
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "visible", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "visible", "Slider tooltip should be shown");
+
+		// move mouse away - fires mouseout
+		anotherSlider.click();
+
+		assert.strictEqual(slider.getProperty("_tooltipVisibility"), "hidden", "Slider tooltip visibility property should be 'visible'");
+		assert.strictEqual(sliderTooltip.getCSSProperty("visibility").value, "hidden", "Slider tooltip should be shown");
 	});
 
 	it("Slider have correct number of labels and tickmarks based on the defined step and labelInterval properties", () => {
@@ -382,7 +435,7 @@ describe("Testing resize handling and RTL support", () => {
 		const slider = browser.$("#basic-slider-rtl");
 		const sliderHandle = slider.shadow$(".ui5-slider-handle");
 
-		assert.strictEqual(sliderHandle.getAttribute("style"), "right: 0%;", "Initially if no value is set, the Slider handle is at the right of the Slider");
+		assert.strictEqual(sliderHandle.getCSSProperty("right").value, "0px", "Initially if no value is set, the Slider handle is at the right of the Slider");
 
 		slider.setProperty("value", 3);
 		assert.strictEqual(sliderHandle.getAttribute("style"), "right: 30%;", "Slider handle should be 30% from the right");

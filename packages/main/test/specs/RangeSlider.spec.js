@@ -10,20 +10,20 @@ describe("Testing Range Slider interactions", () => {
 		const rangeSlider = browser.$("#range-slider-tickmarks");
 		const startHandle = rangeSlider.shadow$(".ui5-slider-handle--start");
 
-		assert.strictEqual(startHandle.getAttribute("style"), "left: 0%;", "Initially if no value is set, the Range Slider start-handle is at the beginning of the Range Slider");
+		assert.strictEqual(startHandle.getAttribute("style").replace(" ", ""), "left:0%;", "Initially if no value is set, the Range Slider start-handle is at the beginning of the Range Slider");
 
 		rangeSlider.setProperty("startValue", 5);
 
-		assert.strictEqual(startHandle.getAttribute("style"), "left: 12.5%;", "Start-handle should be 12.5% from the start");
+		assert.strictEqual(startHandle.getAttribute("style").replace(" ", ""), "left:12.5%;", "Start-handle should be 12.5% from the start");
 
 		startHandle.dragAndDrop({ x: 100, y: 1 });
 
-		assert.strictEqual(startHandle.getAttribute("style"), "left: 20%;", "Start-handle should be 20% from the start of the Range Slider");
+		assert.strictEqual(startHandle.getAttribute("style").replace(" ", ""), "left:20%;", "Start-handle should be 20% from the start of the Range Slider");
 		assert.strictEqual(rangeSlider.getProperty("startValue"), 8, "Range Slider startValue should be 8");
 
 		startHandle.click({ x: -100 });
 
-		assert.strictEqual(startHandle.getAttribute("style"), "left: 12.5%;", "Start-handle should be again 12.5% from the start");
+		assert.strictEqual(startHandle.getAttribute("style").replace(" ", ""), "left:12.5%;", "Start-handle should be again 12.5% from the start");
 		assert.strictEqual(rangeSlider.getProperty("startValue"), 5, "Current startValue should be again 5");
 	});
 
@@ -31,24 +31,24 @@ describe("Testing Range Slider interactions", () => {
 		const rangeSlider = browser.$("#range-slider-tickmarks");
 		const endHandle = rangeSlider.shadow$(".ui5-slider-handle--end");
 
-		assert.strictEqual(endHandle.getAttribute("style"), "left: 50%;", "Range Slider end-handle is should be 50% from the start the Range Slider");
+		assert.strictEqual(endHandle.getAttribute("style").replace(" ", ""), "left:50%;", "Range Slider end-handle is should be 50% from the start the Range Slider");
 		rangeSlider.setProperty("endValue", 10);
 
-		assert.strictEqual(endHandle.getAttribute("style"), "left: 25%;", "End-handle should be 25% from the start");
+		assert.strictEqual(endHandle.getAttribute("style").replace(" ", ""), "left:25%;", "End-handle should be 25% from the start");
 
 		rangeSlider.click();
 
-		assert.strictEqual(endHandle.getAttribute("style"), "left: 50%;", "Range Slider end-handle should be in the middle of the slider");
+		assert.strictEqual(endHandle.getAttribute("style").replace(" ", ""), "left:50%;", "Range Slider end-handle should be in the middle of the slider");
 		assert.strictEqual(rangeSlider.getProperty("endValue"), 20, "Range Slider endValue should be 20");
 
 		endHandle.click({ x: 100 });
 
-		assert.strictEqual(endHandle.getAttribute("style"), "left: 57.5%;", "End-handle should be 57.5%% from the start of the Range slider");
+		assert.strictEqual(endHandle.getAttribute("style").replace(" ", ""), "left:57.5%;", "End-handle should be 57.5%% from the start of the Range slider");
 		assert.strictEqual(rangeSlider.getProperty("endValue"), 23, "Range Slider current endValue should be 23");
 
 		endHandle.dragAndDrop({ x: -100, y: 1 });
 
-		assert.strictEqual(endHandle.getAttribute("style"), "left: 50%;", "End-handle should be back to 50% from the start of the Range Slider");
+		assert.strictEqual(endHandle.getAttribute("style").replace(" ", ""), "left:50%;", "End-handle should be back to 50% from the start of the Range Slider");
 		assert.strictEqual(rangeSlider.getProperty("endValue"), 20, "Current endValue should be 20");
 	});
 
@@ -125,8 +125,9 @@ describe("Testing Range Slider interactions", () => {
 });
 
 describe("Range Slider elements - tooltip, step, tickmarks, labels", () => {
-
 	it("Range Slider tooltips are displayed showing the current value", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/RangeSlider.html`);
+
 		const rangeSlider = browser.$("#basic-range-slider-with-tooltip");
 		const rangeSliderStartTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--start");
 		const rangeSliderStartTooltipValue = rangeSliderStartTooltip.shadow$(".ui5-slider-tooltip-value");
@@ -150,6 +151,50 @@ describe("Range Slider elements - tooltip, step, tickmarks, labels", () => {
 		rangeSlider.moveTo();
 
 		assert.strictEqual(rangeSliderEndTooltipValue.getText(), "115", "Range Slider end tooltip should display value of 65");
+	});
+
+	it("Range Slider tooltips should become visible when range slider is focused", () => {
+		const rangeSlider = browser.$("#basic-range-slider-with-tooltip");
+		const rangeSliderStartTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--start");
+		const rangeSliderEndTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--end");
+		const otherRangeSlider = browser.$("#basic-range-slider");
+
+		otherRangeSlider.moveTo();
+		otherRangeSlider.click();
+		browser.keys("Tab");
+
+		assert.strictEqual(rangeSlider.getProperty("_tooltipVisibility"), "visible", "Range Slider tooltips visibility property should be 'visible'");
+		assert.strictEqual(rangeSliderStartTooltip.getAttribute("style"), "visibility: visible;", "Range Slider start tooltip should be shown");
+		assert.strictEqual(rangeSliderEndTooltip.getAttribute("style"), "visibility: visible;", "Range Slider end tooltip should be shown");
+	});
+
+	it("Range Slider tooltips should stay visible when mouse is moved out but range slider is still focused", () => {
+		const rangeSlider = browser.$("#basic-range-slider-with-tooltip");
+		const rangeSliderStartTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--start");
+		const rangeSliderEndTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--end");
+		const otherRangeSlider = browser.$("#basic-range-slider");
+
+		rangeSlider.moveTo();
+		otherRangeSlider.moveTo();
+
+		assert.strictEqual(rangeSlider.getProperty("_tooltipVisibility"), "visible", "Range Slider tooltips visibility property should be 'visible'");
+		assert.strictEqual(rangeSliderStartTooltip.getAttribute("style"), "visibility: visible;", "Range Slider start tooltip should be shown");
+		assert.strictEqual(rangeSliderEndTooltip.getAttribute("style"), "visibility: visible;", "Range Slider end tooltip should be shown");
+	});
+
+	it("Range Slider tooltips should become hidden if the range slider looses the focus", () => {
+		const rangeSlider = browser.$("#basic-range-slider-with-tooltip");
+		const rangeSliderStartTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--start");
+		const rangeSliderEndTooltip = rangeSlider.shadow$(".ui5-slider-tooltip--end");
+		const otherRangeSlider = browser.$("#basic-range-slider");
+
+		otherRangeSlider.moveTo();
+		otherRangeSlider.click();
+
+		assert.strictEqual(rangeSlider.getProperty("_tooltipVisibility"), "hidden", "Range Slider tooltips visibility property should be 'hidden'");
+		assert.strictEqual(rangeSliderStartTooltip.getAttribute("style"), "visibility: hidden;", "Range Slider start tooltip should be hidden");
+		assert.strictEqual(rangeSliderEndTooltip.getAttribute("style"), "visibility: hidden;", "Range Slider end tooltip should be hidden");
+
 	});
 
 	it("Range Slider have correct number of labels and tickmarks based on the defined step and labelInterval properties", () => {

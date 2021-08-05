@@ -23,7 +23,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("does not fire change, when clicking on selected item", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const select = $("#mySelect");
 		const inputResult = browser.$("#inputResult").shadow$("input");
@@ -38,7 +38,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("fires change on selection with keyboard handling", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const select = $("#mySelect2").shadow$(".ui5-select-root");
 		const selectText = browser.$("#mySelect2").shadow$(".ui5-select-label-root");
@@ -63,7 +63,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("changes selection while closed with Arrow Up/Down", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const inputResult = browser.$("#inputResult").shadow$("input");
 		const select = $("#mySelect2");
@@ -85,7 +85,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("changes selection sync with selection announcement", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const btn = $("#myBtn2");
 		const inputResult = browser.$("#inputResult").shadow$("input");
@@ -111,13 +111,13 @@ describe("Select general interaction", () => {
 		select.keys("ArrowDown");
 		assert.ok(selectText.getHTML(false).indexOf(EXPECTED_SELECTION_TEXT2), "Arrow Down should change selected item");
 		assert.strictEqual(selectionText.getHTML(false), EXPECTED_SELECTION_TEXT2, "Selection announcement text should be equalt to the current selected item's text");
-		
+
 		// change previewed item with picker opened
 		select.click();
 		select.keys("ArrowUp");
 		assert.strictEqual(selectionText.getHTML(false), EXPECTED_SELECTION_TEXT1, "Selection announcement text should be equalt to the current selected item's text");
 		select.keys("Escape");
-		
+
 		// change selection with picker opened
 		select.click();
 		select.keys("ArrowUp");
@@ -131,7 +131,6 @@ describe("Select general interaction", () => {
 		assert.strictEqual(inputResult.getProperty("value"), "3", "Change event should have fired twice");
 	});
 
-	/*
 	it("changes selection on Tab", () => {
 		const select = browser.$("#keyboardHandling");
 		const EXPECTED_SELECTION_TEXT = "Banana";
@@ -173,7 +172,6 @@ describe("Select general interaction", () => {
 
 		assert.strictEqual(focusedElementId, browser.$("#mySelectEsc").getAttribute("id"), "Previous focusable element is focused");
 	});
-	 */
 
 	it("tests selection does not cycle with ArrowDown", () => {
 		const select = $("#selectionNotCycling");
@@ -207,7 +205,34 @@ describe("Select general interaction", () => {
 		select.keys("Escape");
 	});
 
+	it("changes selection with typing single letter", () => {
+		const select = browser.$("#keyboardHandling");
+		const EXPECTED_SELECTION_TEXT = "Banana";
+
+		select.click(); // Open select
+		select.keys("b");
+
+		const selectText = select.shadow$(".ui5-select-label-root");
+
+		assert.ok(selectText.getHTML(false).indexOf(EXPECTED_SELECTION_TEXT) > -1, "Typing letter should change selection");
+	});
+
+	it("changes selection with typing more letters", () => {
+		const select = browser.$("#mySelect3");
+		const EXPECTED_SELECTION_TEXT = "Brazil";
+
+		select.click(); // Open select
+		select.keys("b");
+		select.keys("r");
+
+		const selectText = select.shadow$(".ui5-select-label-root");
+
+		assert.ok(selectText.getHTML(false).indexOf(EXPECTED_SELECTION_TEXT) > -1, "Typing text should change selection");
+	});
+
 	it("opens upon space", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
+
 		const btn = $("#myBtn2");
 		const staticAreaItemClassName = browser.getStaticAreaItemClassName("#mySelect");
 		const popover = browser.$(`.${staticAreaItemClassName}`).shadow$("ui5-responsive-popover");
@@ -220,6 +245,8 @@ describe("Select general interaction", () => {
 	});
 
 	it("toggles upon F4", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
+
 		const btn = $("#myBtn2");
 		const staticAreaItemClassName = browser.getStaticAreaItemClassName("#mySelect");
 		const popover = browser.$(`.${staticAreaItemClassName}`).shadow$("ui5-responsive-popover");
@@ -235,6 +262,8 @@ describe("Select general interaction", () => {
 	});
 
 	it("toggles upon ALT + UP", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
+
 		const btn = $("#myBtn2");
 		const staticAreaItemClassName = browser.getStaticAreaItemClassName("#mySelect");
 		const popover = browser.$(`.${staticAreaItemClassName}`).shadow$("ui5-responsive-popover");
@@ -250,6 +279,8 @@ describe("Select general interaction", () => {
 	});
 
 	it("toggles upon ALT + DOWN", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
+
 		const btn = $("#myBtn2");
 		const staticAreaItemClassName = browser.getStaticAreaItemClassName("#mySelect");
 		const popover = browser.$(`.${staticAreaItemClassName}`).shadow$("ui5-responsive-popover");
@@ -281,7 +312,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("reverts value before open after clicking on escape", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const select = $("#mySelect");
 		const selectText = browser.$("#mySelect").shadow$(".ui5-select-label-root").getHTML(false);
@@ -300,7 +331,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("fires change event after selection is change and picker if focussed out", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const select = $("#mySelect");
 		const inputResult = browser.$("#inputResult").shadow$("input");
@@ -316,7 +347,7 @@ describe("Select general interaction", () => {
 	});
 
 	it("fires change event after selecting a previewed item", () => {
-		browser.url("http://localhost:8080/test-resources/pages/Select.html");
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Select.html`);
 
 		const select = $("#mySelect");
 		const inputResult = browser.$("#inputResult").shadow$("input");

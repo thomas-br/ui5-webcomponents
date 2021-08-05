@@ -75,6 +75,43 @@ describe("Calendar general interaction", () => {
 		assert.ok(new Date(parseInt(focusedItemTimestamp) * 1000).getUTCFullYear() === 1997, "The focused year is 1997");
 	});
 
+	it("Calendar focuses the selected month when monthpicker is opened with space", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Calendar.html`);
+		const calendar = browser.$("#calendar1");
+		const dayPicker = calendar.shadow$("ui5-daypicker");
+		const monthPicker = calendar.shadow$("ui5-monthpicker");
+		const currentDayItem = dayPicker.shadow$(`div[data-sap-timestamp="974851200"]`);
+		calendar.setAttribute("timestamp", new Date(Date.UTC(2000, 10, 22, 0, 0, 0)).valueOf() / 1000);
+
+		currentDayItem.click();
+		browser.keys("Tab");
+		browser.keys("Space");
+
+		const focusedItemTimestamp = monthPicker.shadow$(`[tabindex="0"]`).getAttribute("data-sap-timestamp");
+		const isHidden = monthPicker.getAttribute("hidden");
+		assert.ok(!isHidden, "The monthpicker is present");
+		assert.ok(new Date(parseInt(focusedItemTimestamp) * 1000).getUTCMonth() === 10, "The focused month is November");
+	});
+
+	it("Calendar focuses the selected year when yearpicker is opened with space", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Calendar.html`);
+		const calendar = browser.$("#calendar1");
+		const dayPicker = calendar.shadow$("ui5-daypicker");
+		const yearPicker = calendar.shadow$("ui5-yearpicker");
+		const currentDayItem = dayPicker.shadow$(`div[data-sap-timestamp="974851200"]`);
+		calendar.setAttribute("timestamp", new Date(Date.UTC(2000, 10, 22, 0, 0, 0)).valueOf() / 1000);
+
+		currentDayItem.click();
+		browser.keys("Tab");
+		browser.keys("Tab");
+		browser.keys("Space");
+
+		const isHidden = yearPicker.getAttribute("hidden");
+		assert.ok(!isHidden, "The yearpicker is present");
+		const focusedItemTimestamp = yearPicker.shadow$(`[tabindex="0"]`).getAttribute("data-sap-timestamp");
+		assert.ok(new Date(parseInt(focusedItemTimestamp) * 1000).getUTCFullYear() === 2000, "The focused year is 2000");
+	});
+
 	it("Calendar doesn't mark year as selected when there are no selected dates", () => {
 		browser.url(`http://localhost:${PORT}/test-resources/pages/Calendar.html`);
 		const calendar = browser.$("#calendar1");
@@ -250,4 +287,26 @@ describe("Calendar general interaction", () => {
 
 		assert.deepEqual(selectedDates, [971740800, 971913600], "Change event is fired with proper data");
 	});
+
+	it("Previous and next buttons are disabled when necessary", () => {
+		browser.url(`http://localhost:${PORT}/test-resources/pages/Calendar.html`);
+		const calendarHeader = browser.$("#calendar4").shadow$("ui5-calendar-header");
+		const prevButton = calendarHeader.shadow$(`[data-ui5-cal-header-btn-prev]`);
+		const nextButton = calendarHeader.shadow$(`[data-ui5-cal-header-btn-next]`);
+
+		assert.ok(prevButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Previous Button is disabled");
+		assert.notOk(nextButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Next Button is enabled");
+
+		nextButton.click();
+
+		assert.notOk(prevButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Previous Button is enabled");
+		assert.notOk(nextButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Next Button is enabled");
+
+		nextButton.click();
+		nextButton.click();
+
+		assert.notOk(prevButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Previous Button is enabled");
+		assert.ok(nextButton.hasClass("ui5-calheader-arrowbtn-disabled"), "Next Button is disabled");
+	});
+
 });

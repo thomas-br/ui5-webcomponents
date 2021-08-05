@@ -90,13 +90,15 @@ class ResponsivePopover extends Popover {
 		return [Popover.styles, ResponsivePopoverCss];
 	}
 
-	get dialogClasses() {
-		return {
-			header: {
-				"ui5-responsive-popover-header": true,
-				"ui5-responsive-popover-header-no-title": !this.headerText,
-			},
+	get classes() {
+		const allClasses = super.classes;
+
+		allClasses.header = {
+			"ui5-responsive-popover-header": true,
+			"ui5-responsive-popover-header-no-title": !this.headerText,
 		};
+
+		return allClasses;
 	}
 
 	static get template() {
@@ -112,13 +114,13 @@ class ResponsivePopover extends Popover {
 	}
 
 	/**
-	 * Opens popover on desktop and dialog on mobile.
-	 * @param {HTMLElement} opener the element that the popover is opened by
+	 * Shows popover on desktop and dialog on mobile.
+	 * @param {HTMLElement} opener the element that the popover is shown at
 	 * @public
 	 * @async
 	 * @returns {Promise} Resolves when the responsive popover is open
 	 */
-	async open(opener) {
+	async showAt(opener) {
 		this.style.display = this._isPhone ? "contents" : "";
 
 		if (this.isOpen() || (this._dialog && this._dialog.isOpen())) {
@@ -130,11 +132,10 @@ class ResponsivePopover extends Popover {
 			if (!this.noStretch) {
 				this._minWidth = Math.max(POPOVER_MIN_WIDTH, opener.getBoundingClientRect().width);
 			}
-
-			await this.openBy(opener);
+			await super.showAt(opener);
 		} else {
 			this.style.zIndex = getNextZIndex();
-			await this._dialog.open();
+			await this._dialog.show();
 		}
 	}
 
@@ -155,7 +156,7 @@ class ResponsivePopover extends Popover {
 			return this.close();
 		}
 
-		this.open(opener);
+		this.showAt(opener);
 	}
 
 	/**

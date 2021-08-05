@@ -6,6 +6,8 @@ import {
 	isDown,
 	isEnter,
 	isEscape,
+	isHome,
+	isEnd,
 	isShow,
 	isTabNext,
 	isTabPrevious,
@@ -54,7 +56,7 @@ const metadata = {
 	slots: /** @lends sap.ui.webcomponents.main.Select.prototype */ {
 
 		/**
-		 * Defines the <code>ui5-select</code> options.
+		 * Defines the component options.
 		 *
 		 * <br><br>
 		 * <b>Note:</b> Only one selected option is allowed.
@@ -73,13 +75,13 @@ const metadata = {
 		},
 
 		/**
-		 * Defines the value state message that will be displayed as pop up under the <code>ui5-select</code>.
+		 * Defines the value state message that will be displayed as pop up under the component.
 		 * <br><br>
 		 *
 		 * <b>Note:</b> If not specified, a default text (in the respective language) will be displayed.
 		 * <br>
 		 * <b>Note:</b> The <code>valueStateMessage</code> would be displayed,
-		 * when the <code>ui5-select</code> is in <code>Information</code>, <code>Warning</code> or <code>Error</code> value state.
+		 * when the component is in <code>Information</code>, <code>Warning</code> or <code>Error</code> value state.
 		 * @type {HTMLElement[]}
 		 * @since 1.0.0-rc.9
 		 * @slot
@@ -103,9 +105,9 @@ const metadata = {
 	properties: /** @lends  sap.ui.webcomponents.main.Select.prototype */  {
 
 		/**
-		 * Defines whether <code>ui5-select</code> is in disabled state.
+		 * Defines whether the component is in disabled state.
 		 * <br><br>
-		 * <b>Note:</b> A disabled <code>ui5-select</code> is noninteractive.
+		 * <b>Note:</b> A disabled component is noninteractive.
 		 *
 		 * @type {boolean}
 		 * @defaultvalue false
@@ -116,8 +118,8 @@ const metadata = {
 		},
 
 		/**
-		 * Determines the name with which the <code>ui5-select</code> will be submitted in an HTML form.
-		 * The value of the <code>ui5-select</code> will be the value of the currently selected <code>ui5-option</code>.
+		 * Determines the name with which the component will be submitted in an HTML form.
+		 * The value of the component will be the value of the currently selected <code>ui5-option</code>.
 		 *
 		 * <br><br>
 		 * <b>Important:</b> For the <code>name</code> property to have effect, you must add the following import to your project:
@@ -137,7 +139,7 @@ const metadata = {
 		},
 
 		/**
-		 * Defines the value state of the <code>ui5-select</code>.
+		 * Defines the value state of the component.
 		 * <br><br>
 		 * Available options are:
 		 * <ul>
@@ -158,7 +160,7 @@ const metadata = {
 		},
 
 		/**
-		 * Defines whether the <code>ui5-select</code> is required.
+		 * Defines whether the component is required.
 		 *
 		 * @since 1.0.0-rc.9
 		 * @type {boolean}
@@ -170,14 +172,14 @@ const metadata = {
 		},
 
 		/**
-		 * Defines the aria-label attribute for the select.
+		 * Sets the accessible aria name of the component.
 		 *
 		 * @type {String}
 		 * @since 1.0.0-rc.9
-		 * @private
-		 * @defaultvalue ""
+		 * @public
+		 * @since 1.0.0-rc.15
 		 */
-		ariaLabel: {
+		accessibleName: {
 			type: String,
 		},
 
@@ -186,10 +188,10 @@ const metadata = {
 		 *
 		 * @type {String}
 		 * @defaultvalue ""
-		 * @private
-		 * @since 1.0.0-rc.9
+		 * @public
+		 * @since 1.0.0-rc.15
 		 */
-		ariaLabelledby: {
+		accessibleNameRef: {
 			type: String,
 			defaultValue: "",
 		},
@@ -249,10 +251,15 @@ const metadata = {
  *
  * <h3>Keyboard Handling</h3>
  * The <code>ui5-select</code> provides advanced keyboard handling.
- * If the <code>ui5-select</code> is focused,
- * you can open or close the drop-down by pressing <code>F4</code>, <code>ALT+UP</code> or <code>ALT+DOWN</code> keys.
- * Once the drop-down is opened, you can use the <code>UP</code> and <code>DOWN</code> arrow keys
- * to navigate through the available options and select one by pressing the <code>Space</code> or <code>Enter</code> keys.
+ * <br>
+ * <ul>
+ * <li>[F4, ALT+UP, ALT+DOWN, SPACE, ENTER] - Opens/closes the drop-down.</li>
+ * <li>[UP, DOWN] - If the drop-down is closed - changes selection to the next or the previous option. If the drop-down is opened - moves focus to the next or the previous option.</li>
+ * <li>[SPACE, ENTER] - If the drop-down is opened - selects the focused option.</li>
+ * <li>[ESC] - Closes the drop-down without changing the selection.</li>
+ * <li>[HOME] - Navigates to first option</li>
+ * <li>[END] - Navigates to the last option</li>
+ * </ul>
  * <br>
  *
  * <h3>Stable DOM Refs</h3>
@@ -309,6 +316,8 @@ class Select extends UI5Element {
 		this._selectedIndexBeforeOpen = -1;
 		this._escapePressed = false;
 		this._lastSelectedOption = null;
+		this._typedChars = "";
+		this._typingTimeoutID = -1;
 		this.i18nBundle = getI18nBundle("@ui5/webcomponents");
 	}
 
@@ -365,7 +374,7 @@ class Select extends UI5Element {
 		if (this._isPickerOpen) {
 			this.responsivePopover.close();
 		} else {
-			this.responsivePopover.open(this);
+			this.responsivePopover.showAt(this);
 		}
 	}
 
@@ -373,7 +382,8 @@ class Select extends UI5Element {
 		let lastSelectedOptionIndex = -1,
 			firstEnabledOptionIndex = -1;
 		const opts = this.options.map((opt, index) => {
-			if (opt.selected) {
+			if (opt.selected || opt.textContent === this.value) {
+				// The second condition in the IF statement is added because of Angular Reactive Forms Support(Two way data binding)
 				lastSelectedOptionIndex = index;
 			}
 			if (!opt.disabled && (firstEnabledOptionIndex === -1)) {
@@ -440,21 +450,84 @@ class Select extends UI5Element {
 		if (isShow(event)) {
 			event.preventDefault();
 			this._toggleRespPopover();
-		}
-
-		if (isSpace(event)) {
+		} else if (isSpace(event)) {
 			event.preventDefault();
-		}
-
-		if (isEscape(event) && this._isPickerOpen) {
+		} else if (isEscape(event) && this._isPickerOpen) {
 			this._escapePressed = true;
-		}
-
-		if (isEnter(event)) {
+		} else if (isHome(event)) {
+			this._handleHomeKey(event);
+		} else if (isEnd(event)) {
+			this._handleEndKey(event);
+		} else if (isEnter(event)) {
 			this._handleSelectionChange();
+		} else if (isUp(event) || isDown(event)) {
+			this._handleArrowNavigation(event);
+		} else {
+			this._handleKeyboardNavigation(event);
+		}
+	}
+
+	_handleKeyboardNavigation(event) {
+		// Waiting for the actual symbol to trigger the keydown event
+		if (event.shiftKey && event.key === "Shift") {
+			return;
 		}
 
-		this._handleArrowNavigation(event, true);
+		const typedCharacter = event.key.toLowerCase();
+
+		this._typedChars += typedCharacter;
+
+		// We check if we have more than one characters and they are all duplicate, we set the
+		// text to be the last input character (typedCharacter). If not, we set the text to be
+		// the whole input string.
+
+		const text = (/^(.)\1+$/i).test(this._typedChars) ? typedCharacter : this._typedChars;
+
+		clearTimeout(this._typingTimeoutID);
+
+		this._typingTimeoutID = setTimeout(() => {
+			this._typedChars = "";
+			this._typingTimeoutID = -1;
+		}, 1000);
+
+		this._selectTypedItem(text);
+	}
+
+	_selectTypedItem(text) {
+		const currentIndex = this._selectedIndex;
+		const itemToSelect = this._searchNextItemByText(text);
+
+		if (itemToSelect) {
+			const nextIndex = this._getSelectedItemIndex(itemToSelect);
+
+			this._changeSelectedItem(this._selectedIndex, nextIndex);
+
+			if (currentIndex !== this._selectedIndex) {
+				this.itemSelectionAnnounce();
+			}
+		}
+	}
+
+	_searchNextItemByText(text) {
+		let orderedOptions = this.options.slice(0);
+		const optionsAfterSelected = orderedOptions.splice(this._selectedIndex + 1, orderedOptions.length - this._selectedIndex);
+		const optionsBeforeSelected = orderedOptions.splice(0, orderedOptions.length - 1);
+
+		orderedOptions = optionsAfterSelected.concat(optionsBeforeSelected);
+
+		return orderedOptions.find(option => option.textContent.toLowerCase().startsWith(text));
+	}
+
+	_handleHomeKey(event) {
+		event.preventDefault();
+		this._changeSelectedItem(this._selectedIndex, 0);
+	}
+
+	_handleEndKey(event) {
+		const lastIndex = this.options.length - 1;
+
+		event.preventDefault();
+		this._changeSelectedItem(this._selectedIndex, lastIndex);
 	}
 
 	_onkeyup(event) {
@@ -508,39 +581,40 @@ class Select extends UI5Element {
 		this._toggleRespPopover();
 	}
 
-	_handleArrowNavigation(event, shouldFireEvent) {
+	_handleArrowNavigation(event) {
 		let nextIndex = -1;
 		const currentIndex = this._selectedIndex;
 		const isDownKey = isDown(event);
-		const isUpKey = isUp(event);
 
-		if (isDownKey || isUpKey) {
-			event.preventDefault();
-			if (isDownKey) {
-				nextIndex = this._getNextOptionIndex();
-			} else {
-				nextIndex = this._getPreviousOptionIndex();
-			}
+		event.preventDefault();
+		if (isDownKey) {
+			nextIndex = this._getNextOptionIndex();
+		} else {
+			nextIndex = this._getPreviousOptionIndex();
+		}
 
-			this.options[this._selectedIndex].selected = false;
-			this.options[this._selectedIndex]._focused = false;
+		this._changeSelectedItem(this._selectedIndex, nextIndex);
 
-			this.options[nextIndex].selected = true;
-			this.options[nextIndex]._focused = true;
+		if (currentIndex !== this._selectedIndex) {
+			// Announce new item even if picker is opened.
+			// The aria-activedescendents attribute can't be used,
+			// because listitem elements are in different shadow dom
+			this.itemSelectionAnnounce();
+		}
+	}
 
-			this._selectedIndex = nextIndex === -1 ? this._selectedIndex : nextIndex;
+	_changeSelectedItem(oldIndex, newIndex) {
+		this.options[oldIndex].selected = false;
+		this.options[oldIndex]._focused = false;
 
-			if (currentIndex !== this._selectedIndex) {
-				// Announce new item even if picker is opened.
-				// The aria-activedescendents attribute can't be used,
-				// because listitem elements are in different shadow dom
-				this.itemSelectionAnnounce();
-			}
+		this.options[newIndex].selected = true;
+		this.options[newIndex]._focused = true;
 
-			if (shouldFireEvent && !this._isPickerOpen) {
-				// arrow pressed on closed picker - do selection change
-				this._fireChangeEvent(this.options[nextIndex]);
-			}
+		this._selectedIndex = newIndex;
+
+		if (!this._isPickerOpen) {
+			// arrow pressed on closed picker - do selection change
+			this._fireChangeEvent(this.options[newIndex]);
 		}
 	}
 
@@ -579,7 +653,7 @@ class Select extends UI5Element {
 		this.fireEvent("change", { selectedOption });
 
 		//  Angular two way data binding
-		this.selectedItem = selectedOption;
+		this.selectedItem = selectedOption.textContent;
 		this.fireEvent("selected-item-changed");
 	}
 
@@ -690,7 +764,7 @@ class Select extends UI5Element {
 	async openValueStatePopover() {
 		this.popover = await this._getPopover();
 		if (this.popover) {
-			this.popover.openBy(this);
+			this.popover.showAt(this);
 		}
 	}
 
@@ -704,6 +778,10 @@ class Select extends UI5Element {
 		} else {
 			this.closeValueStatePopover();
 		}
+	}
+
+	get selectedOptionIcon() {
+		return this.selectedOption && this.selectedOption.icon;
 	}
 
 	async _getPopover() {

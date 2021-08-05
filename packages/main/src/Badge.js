@@ -19,7 +19,7 @@ const metadata = {
 	properties: /** @lends sap.ui.webcomponents.main.Badge.prototype */  {
 
 		/**
-		 * Defines the color scheme of the <code>ui5-badge</code>.
+		 * Defines the color scheme of the component.
 		 * There are 10 predefined schemes. Each scheme applies different values for the <code>background-color</code> and <code>border-color</code>.
 		 * To use one you can set a number from <code>"1"</code> to <code>"10"</code>. The <code>colorScheme</code> <code>"1"</code> will be set by default.
 		 * <br><br>
@@ -32,11 +32,27 @@ const metadata = {
 			type: String,
 			defaultValue: "1",
 		},
+
+		/**
+		 * Defines if the badge has an icon.
+		 * @private
+		 */
+		_hasIcon: {
+			type: Boolean,
+		},
+
+		/**
+		 * Defines if the badge has only an icon (and no text).
+		 * @private
+		 */
+		_iconOnly: {
+			type: Boolean,
+		},
 	},
 	managedSlots: true,
 	slots: /** @lends sap.ui.webcomponents.main.Badge.prototype */ {
 		/**
-		 * Defines the text of the <code>ui5-badge</code>.
+		 * Defines the text of the component.
 		 * <br><b>Note:</b> Although this slot accepts HTML Elements, it is strongly recommended that you only use text in order to preserve the intended design.
 		 *
 		 * @type {Node[]}
@@ -48,7 +64,7 @@ const metadata = {
 		},
 
 		/**
-		 * Defines the <code>ui5-icon</code> to be displayed in the <code>ui5-badge</code>.
+		 * Defines the icon to be displayed in the component.
 		 *
 		 * @type {sap.ui.webcomponents.main.IIcon}
 		 * @slot
@@ -114,11 +130,8 @@ class Badge extends UI5Element {
 	}
 
 	onBeforeRendering() {
-		if (this.hasIcon) {
-			this.setAttribute("__has-icon", "");
-		} else {
-			this.removeAttribute("__has-icon");
-		}
+		this._hasIcon = this.hasIcon;
+		this._iconOnly = this.iconOnly;
 	}
 
 	get hasText() {
@@ -127,6 +140,10 @@ class Badge extends UI5Element {
 
 	get hasIcon() {
 		return !!this.icon.length;
+	}
+
+	get iconOnly() {
+		return this.hasIcon && !this.hasText;
 	}
 
 	get badgeDescription() {

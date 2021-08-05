@@ -2,6 +2,7 @@ import { isSpace } from "@ui5/webcomponents-base/dist/Keys.js";
 import { getI18nBundle } from "@ui5/webcomponents-base/dist/i18nBundle.js";
 
 import ListItemBase from "@ui5/webcomponents/dist/ListItemBase.js";
+import Integer from "@ui5/webcomponents-base/dist/types/Integer.js";
 import Priority from "@ui5/webcomponents/dist/types/Priority.js";
 
 // Icons
@@ -25,17 +26,24 @@ const metadata = {
 	properties: /** @lends sap.ui.webcomponents.fiori.NotificationListItemBase.prototype */ {
 
 		/**
-		 * Defines the <code>heading</code> of the item.
+		 * Defines the <code>titleText</code> of the item.
 		 * @type {string}
 		 * @defaultvalue ""
 		 * @public
 		 */
-		heading: {
+		titleText: {
 			type: String,
 		},
 
 		/**
 		 * Defines the <code>priority</code> of the item.
+		 * Available options are:
+		 * <ul>
+		 * <li><code>None</code></li>
+		 * <li><code>Low</code></li>
+		 * <li><code>Medium</code></li>
+		 * <li><code>High</code></li>
+		 * </ul>
 		 * @type {Priority}
 		 * @defaultvalue "None"
 		 * @public
@@ -58,7 +66,7 @@ const metadata = {
 		/**
 		 * Defines if the <code>notification</code> is new or has been already read.
 		 * <br><br>
-		 * <b>Note:</b> if set to <code>false</code> the <code>heading</code> has bold font,
+		 * <b>Note:</b> if set to <code>false</code> the <code>titleText</code> has bold font,
 		 * if set to true - it has a normal font.
 		 * @type {boolean}
 		 * @defaultvalue false
@@ -77,6 +85,18 @@ const metadata = {
 		 */
 		busy: {
 			type: Boolean,
+		},
+
+		/**
+		 * Defines the delay in milliseconds, after which the busy indicator will show up for this component.
+		 *
+		 * @type {Integer}
+		 * @defaultValue 1000
+		 * @public
+		 */
+		busyDelay: {
+			type: Integer,
+			defaultValue: 1000,
 		},
 	},
 	slots: /** @lends sap.ui.webcomponents.fiori.NotificationListItemBase.prototype */ {
@@ -147,8 +167,8 @@ class NotificationListItemBase extends ListItemBase {
 		};
 	}
 
-	get hasHeading() {
-		return !!this.heading.length;
+	get hasTitleText() {
+		return !!this.titleText.length;
 	}
 
 	get hasPriority() {
@@ -237,7 +257,7 @@ class NotificationListItemBase extends ListItemBase {
 
 	async openOverflow() {
 		const overflowPopover = await this.getOverflowPopover();
-		overflowPopover.openBy(this.overflowButtonDOM);
+		overflowPopover.showAt(this.overflowButtonDOM);
 	}
 
 	async closeOverflow() {
