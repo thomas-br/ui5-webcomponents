@@ -8,8 +8,7 @@ Follow this simple tutorial to get a custom theme running with UI5 Web Component
 
 1. Open **SAP Theme Designer**.
 
-	Go to [ui5.sap.com](https://ui5.sap.com) and select `Tools` -> `UI Theme Designer` from the menu, or just follow the
-	[direct link](https://themedesigner-themedesigner.dispatcher.hanatrial.ondemand.com/index.html).
+	Open the SAP Theme Designer using any SAP Cloud Portal site. If you do not have one accessible, you can also use the [trial tier of the SAP Business Technology Platform](https://help.sap.com/viewer/09f6818d8e064537973102d6289e2aca/LATEST/en-US/26c100668d0047af9db9141ab1d92571.html).
 
 2. Create your **custom theme** in `SAP Theme Designer`.
 
